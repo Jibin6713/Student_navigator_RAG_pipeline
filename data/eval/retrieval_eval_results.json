@@ -1,0 +1,17 @@
+[
+  {
+    "method": "keyword",
+    "hit_rate": 0.789,
+    "mrr": 0.637
+  },
+  {
+    "method": "vector",
+    "hit_rate": 0.628,
+    "mrr": 0.510
+  },
+  {
+    "method": "hybrid",
+    "hit_rate": 0.813,
+    "mrr": 0.646
+  }
+]

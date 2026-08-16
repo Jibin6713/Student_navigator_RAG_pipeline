@@ -1,0 +1,51 @@
+{
+  "url": "https://www.auckland.ac.nz/en/students/newstudents/explore-your-faculty.html",
+  "title": "Explore your faculty – University of Auckland",
+  "text": "Breadcrumbs List.\nShow Truncated Breadcrumbs.\nHome\nNgā tauira | Students\nNew students\nYou are currently on:\nExplore your faculty\nExplore your faculty\nArts and Education students\nDiscover what's available for current Arts and Education students.\nFind out more\nLaw students\nDiscover what's available for current Law students.\nFind out more\nBusiness students\nFind out what's available to current students of the Business School.\nFind out more\nMedical and Health Science students\nDiscover what's available for Medical and Health Science students.\nFind out more\nEngineering and Design students\nFind out more about what's available to Engineering and Design students.\nFind out more\nScience students\nFind out more about what's available to current Science students.\nFind out more",
+  "headings": [
+    "Arts and Education students",
+    "Law students",
+    "Business students",
+    "Medical and Health Science students",
+    "Engineering and Design students",
+    "Science students"
+  ],
+  "links": [
+    {
+      "text": "Home",
+      "href": "https://www.auckland.ac.nz/en.html"
+    },
+    {
+      "text": "Ngā tauira | Students",
+      "href": "https://www.auckland.ac.nz/en/students.html"
+    },
+    {
+      "text": "New students",
+      "href": "https://www.auckland.ac.nz/en/students/newstudents.html"
+    },
+    {
+      "text": "Arts and Education students",
+      "href": "https://www.auckland.ac.nz/en/arts/current-students.html"
+    },
+    {
+      "text": "Law students",
+      "href": "https://www.auckland.ac.nz/en/law/current-students.html"
+    },
+    {
+      "text": "Business students",
+      "href": "https://www.auckland.ac.nz/en/business/current-students.html"
+    },
+    {
+      "text": "Medical and Health Science students",
+      "href": "https://www.auckland.ac.nz/en/fmhs/current-students.html"
+    },
+    {
+      "text": "Engineering and Design students",
+      "href": "https://www.auckland.ac.nz/en/engineering/current-students.html"
+    },
+    {
+      "text": "Science students",
+      "href": "https://www.auckland.ac.nz/en/science/current-students.html"
+    }
+  ]
+}

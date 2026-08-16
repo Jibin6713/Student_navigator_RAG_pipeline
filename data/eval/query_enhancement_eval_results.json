@@ -1,0 +1,22 @@
+[
+  {
+    "method": "hybrid",
+    "hit_rate": 0.88,
+    "mrr": 0.696
+  },
+  {
+    "method": "hybrid+rewrite",
+    "hit_rate": 0.84,
+    "mrr": 0.6293333333333333
+  },
+  {
+    "method": "hybrid+rerank",
+    "hit_rate": 0.9,
+    "mrr": 0.7373333333333334
+  },
+  {
+    "method": "hybrid+rewrite+rerank",
+    "hit_rate": 0.88,
+    "mrr": 0.73
+  }
+]

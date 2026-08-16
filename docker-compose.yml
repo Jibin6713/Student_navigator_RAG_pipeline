@@ -1,0 +1,19 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env
+
+  ingestion:
+    build: .
+    command: ["uv", "run", "python", "run_ingestion.py"]
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env
+    profiles:
+      - ingestion
