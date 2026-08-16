@@ -9,6 +9,8 @@ Built as a project for the [DataTalks.Club LLM Zoomcamp](https://github.com/Data
 
 **Live app**: [studentnavigatorragpipeline.streamlit.app](https://studentnavigatorragpipeline-3hxxdbmroahv4xi8rdpcjs.streamlit.app/)
 
+![Chat UI](docs/screenshot-chat.png)
+
 > This README assumes no prior knowledge of the course. Every tool and technique
 > used is explained here, including the ones not covered in the course itself.
 
@@ -390,6 +392,8 @@ default was set to follow the evidence rather than intuition:
 **re-ranking on, query rewriting off**.
 
 ## Monitoring
+
+![Dashboard](docs/screenshot-dashboard.png)
 
 The dashboard (second page of the Streamlit app) shows:
 
