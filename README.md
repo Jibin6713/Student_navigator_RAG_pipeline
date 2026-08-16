@@ -24,7 +24,6 @@ Built as a project for the [DataTalks.Club LLM Zoomcamp](https://github.com/Data
 - [Example usage](#example-usage)
 - [Evaluation](#evaluation)
 - [Monitoring](#monitoring)
-- [Evaluation criteria checklist](#evaluation-criteria-checklist)
 - [Known limitations / what's left](#known-limitations--whats-left)
 
 ---
@@ -48,9 +47,7 @@ risk of stale or hallucinated answers about fees, dates, or requirements.
 
 The knowledge base is built from the University of Auckland's public website
 (`auckland.ac.nz`), crawled from four seed sections: **Study**, **Students**,
-**On-campus**, and **News**. This is original, self-collected data — not the
-DataTalks.Club FAQ documents.
-
+**On-campus**, and **News**. 
 | | |
 |---|---|
 | Pages crawled | 101 |
@@ -173,10 +170,7 @@ visualizes it alongside the offline evaluation results.
 | Dashboard charts | Plotly + pandas | — |
 | Dependency management | [uv](https://docs.astral.sh/uv/) | — |
 
-**Why SQLite FTS5 + sqlite-vec instead of the course's `minsearch` / a hosted
-vector DB?** The project started with `minsearch` (the course's toy in-memory
-search library), but it has no persistence — it rebuilds from scratch on every
-process start and doesn't produce real BM25 scores. FTS5 is SQLite's built-in
+**Why SQLite FTS5 + sqlite-vec. FTS5 is SQLite's built-in
 full-text search extension: it stores an inverted index on disk, ranks results
 with the industry-standard BM25 algorithm, and needs zero extra services —
 just the Python standard library's `sqlite3` module.
@@ -187,13 +181,6 @@ SQL. Together, both indexes live in a single `.db` file with no separate
 database server to run, deploy, or containerize — which keeps the whole
 project reproducible with nothing more than a Python environment.
 
-**Why `responses.parse` with Pydantic instead of manually parsing JSON?**
-Early versions of this project asked the model to "return JSON" as free text
-and parsed it by stripping markdown fences — fragile, and it broke whenever
-the model's formatting drifted. OpenAI's `responses.parse` API accepts a
-Pydantic model as the expected output shape and guarantees the response
-matches it, which is used throughout the evaluation code (ground-truth
-question generation, LLM-as-judge scoring).
 
 ## Project structure
 
@@ -316,15 +303,6 @@ the containers stop.
 >
 > Source: https://www.auckland.ac.nz/en/study/fees-and-money-matters/tuition-fees/international-student-fees.html
 
-**Q: When is the deadline for fees payment?**
-
-> The exact deadlines for paying your fees at the University of Auckland
-> depend on the semester or quarter of study you are enrolled in... check the
-> "Paying your fees" page... [links to the two relevant pages]
-
-*(Screenshots of the chat UI and dashboard: add your own here —
-`![chat UI](docs/screenshot-chat.png)` — after running the app locally.)*
-
 ## Evaluation
 
 ### Retrieval evaluation
@@ -411,25 +389,6 @@ The dashboard (second page of the Streamlit app) shows:
 Charts 5-6 are populated immediately from the evaluation runs above; charts
 1-4 populate as real users rate answers in the app.
 
-## Evaluation criteria checklist
-
-Self-assessment against the [course rubric](https://github.com/DataTalksClub/llm-zoomcamp/blob/main/project.md):
-
-| Criterion | Status |
-|---|---|
-| Problem description | This README |
-| Retrieval flow (knowledge base + LLM) | ✅ SQLite FTS5 + sqlite-vec → OpenAI |
-| Retrieval evaluation (multiple approaches compared) | ✅ keyword / vector / hybrid, 2,667 questions |
-| LLM evaluation (multiple prompts compared) | ✅ strict / flexible, LLM-as-judge, 100 questions |
-| Interface | ✅ Full Streamlit UI |
-| Ingestion pipeline | ✅ Single automated entrypoint (`run_ingestion.py`) |
-| Monitoring | ✅ Feedback collection + 6-chart dashboard |
-| Containerization | ✅ Full docker-compose (app + on-demand ingestion service) |
-| Reproducibility | ✅ `uv.lock` pinned deps, `.env.example`, documented setup above |
-| Hybrid search (bonus) | ✅ RRF |
-| Re-ranking (bonus) | ✅ LLM re-ranker, evaluated, on by default |
-| Query rewriting (bonus) | ✅ Implemented & evaluated (off by default — see evaluation) |
-| Cloud deployment (bonus) | ❌ Not done |
 
 ## Known limitations / what's left
 
