@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urldefrag, urljoin, urlparse
 import time
 import requests
 from bs4 import BeautifulSoup
@@ -20,7 +20,11 @@ SEED_URLS = [
     "https://www.auckland.ac.nz/en/news.html"
 ]
 
-MAX_PAGES = 100
+# raised from 100: fixing the fragment-stripping bug below surfaces the
+# programme-finder directory (~200 individual programme pages) that was
+# previously invisible to the crawler entirely, so the old budget would have
+# starved coverage of everything else
+MAX_PAGES = 300
 
 ALLOWED_PATHS = [
     "/en/study/",
@@ -45,9 +49,6 @@ def should_visit(url: str) -> bool:
         return False
 
     if url.startswith("mailto:"):
-        return False
-
-    if "#" in url:
         return False
 
     if url.endswith(".pdf"):
@@ -145,7 +146,12 @@ def crawl_page(url: str):
 
     for a in main.find_all("a", href=True):
 
-        href = urljoin(url, a["href"])
+        # strip the fragment rather than rejecting the whole URL for having
+        # one — same-page anchors collapse to the page itself (already
+        # filtered by the visited-set check), while URLs that use a fragment
+        # for client-side state (e.g. a filtered results view) keep the
+        # meaningful query string that actually determines what's returned
+        href, _fragment = urldefrag(urljoin(url, a["href"]))
 
         if href in seen_links:
             continue

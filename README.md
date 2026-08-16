@@ -50,8 +50,8 @@ The knowledge base is built from the University of Auckland's public website
 **On-campus**, and **News**. 
 | | |
 |---|---|
-| Pages crawled | 101 |
-| Chunks indexed | 889 (heading-based sections, see below) |
+| Pages crawled | 305 |
+| Chunks indexed | 3,060 (heading-based sections, see below) |
 | Source | `auckland.ac.nz/en/study/*`, `/students/*`, `/on-campus/*`, `/news.html` |
 
 ## How it works
@@ -84,7 +84,12 @@ The knowledge base is built from the University of Auckland's public website
 - **Crawl** ([`crawler/crawler.py`](crawler/crawler.py)) — a breadth-first crawler
   (`requests` + `BeautifulSoup`) starting from 4 seed URLs, restricted to
   university-owned paths, saving both raw HTML and a cleaned text extraction
-  per page.
+  per page. `MAX_PAGES` is 300 (raised from an initial 100 — see [Known
+  limitations](#known-limitations--whats-left) for why). Link discovery
+  strips URL fragments rather than rejecting any URL containing `#`, since an
+  earlier version incorrectly filtered out a programme-directory link that
+  used a fragment for client-side state, not page navigation — silently
+  hiding ~200 individual programme pages from the crawl.
 - **Chunk** ([`crawler/chunker.py`](crawler/chunker.py)) — instead of naive
   fixed-size text splitting, each page is re-parsed and split at its own
   `<h2>`/`<h3>` heading boundaries. The site's authors already organized each
@@ -399,14 +404,46 @@ Charts 5-6 are populated immediately from the evaluation runs above; charts
   embeddings) — running the pipeline from scratch requires an OpenAI API key
   and will make paid API calls (embeddings are cheap; the full evaluation
   suite costs well under $1 in total, see [Evaluation](#evaluation)).
-- **`MAX_PAGES = 100` in `crawler.py` means real coverage gaps.** For example,
-  asking "I need to book a study room in the general library" retrieves the
-  Student Hubs and Libraries pages (the closest content we do have) and
-  answers honestly without hallucinating a booking procedure — but the actual
-  page for this (`.../student-hubs/book-a-group-study-room.html`) is linked
-  from a page we crawled and matches the URL allow-list, yet was never visited
-  because the breadth-first crawl hit its page cap first. This is arguably the
-  correct failure mode (no hallucination, honest hedging pointing to the
-  closest real pages) but reflects a genuine data-coverage gap rather than a
-  retrieval or generation bug — raising `MAX_PAGES` (or crawling specific
-  sections more deeply) would close gaps like this one.
+- **Two coverage gaps found by testing, and fixed.** Asking "I need to book a
+  study room in the general library" originally retrieved only the Student
+  Hubs and Libraries pages — the closest content available — and answered
+  honestly without hallucinating a booking procedure, but the actual page for
+  this existed and simply hadn't been crawled. Digging into why led to a real
+  bug: a page we *did* crawl linked to the university's programme-directory
+  tool using a URL fragment for client-side state (`...find-a-study-option.html?...#list`),
+  and `should_visit()` in `crawler.py` had a blanket `if "#" in url: return False`
+  rule meant to filter ordinary page-navigation anchors — which also silently
+  rejected this URL, hiding the entire directory (~200 individual programme
+  pages) from the crawl. That, in turn, was *also* why a separate test —
+  "what master's options do I have in a computer science related topic" —
+  only ever surfaced the Master of Information Technology page: it was the
+  only CS-adjacent programme in the dataset at all, fetched as a one-off
+  outside the normal crawl rather than discovered by it. Fixed by stripping
+  URL fragments at link-extraction time instead of rejecting the whole URL,
+  and raising `MAX_PAGES` from 100 to 300 (the directory page was discovered
+  late in crawl order, so a bigger budget was needed to actually reach its
+  contents). Re-crawling closed both gaps — the study-room page, Master of
+  Data Science, and Master of Artificial Intelligence are now all in the
+  dataset (305 pages / 3,060 chunks, up from 101 / 889).
+- **The evaluation numbers throughout this README predate the crawl fix
+  above.** Retrieval evaluation, LLM evaluation, and the query-enhancement
+  ablation were all run against the original 889-chunk dataset — they're
+  accurate as point-in-time comparisons between methods, but haven't been
+  re-run against the current, larger 3,060-chunk dataset.
+- **A real hallucination found by spot-checking, not by the automated eval.**
+  Asking "what master program option do I have in a computer science related
+  topic" surfaced the Master of Information Technology (MInfoTech) page and
+  correctly listed its 120/180/240-point options — but inverted who each
+  option is for. The source text is unambiguous: the **120-point** option
+  requires *"a bachelors (honours) degree or postgraduate diploma in an
+  IT-related field"* (the most advanced prior background), while the
+  **240-point** option requires *"an undergraduate degree, in any
+  discipline"* (the least IT-specific background — hence the extra compulsory
+  foundational courses, COMPSCI 718/719, to catch those students up). The
+  generated answer said the opposite — that 240 points was "designed for
+  those with a strong IT-related background." The retrieved context contained
+  the correct information; the model inverted the relationship when
+  summarizing it. This is exactly the kind of faithfulness slip the LLM
+  evaluation is meant to catch (74–76% faithful, not 100%) — a useful
+  reminder that a good aggregate score doesn't mean every individual answer
+  is correct, and spot-checking real queries remains necessary.
