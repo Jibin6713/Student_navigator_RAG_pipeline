@@ -7,6 +7,8 @@ the university's own website, not a general-purpose LLM guessing from memory.
 
 Built as a project for the [DataTalks.Club LLM Zoomcamp](https://github.com/DataTalksClub/llm-zoomcamp).
 
+**Live app**: [studentnavigatorragpipeline.streamlit.app](https://studentnavigatorragpipeline-3hxxdbmroahv4xi8rdpcjs.streamlit.app/)
+
 > This README assumes no prior knowledge of the course. Every tool and technique
 > used is explained here, including the ones not covered in the course itself.
 
@@ -115,10 +117,9 @@ Three retrieval strategies are implemented and compared (see
 - **vector** — `sqlite-vec`, cosine-similarity nearest neighbours
 - **hybrid** — both of the above combined via **Reciprocal Rank Fusion (RRF)**:
   results are merged by *rank position* (`score += 1 / (60 + rank)`) rather than
-  raw score, since BM25 and vector distance live on incompatible scales. This
-  is the retrieval bonus item ("hybrid search combining text and vector search").
+  raw score, since BM25 and vector distance live on incompatible scales.
 
-Two further retrieval bonus techniques were built and evaluated
+Two further retrieval techniques were built and evaluated
 ([`rag/query_rewriter.py`](rag/query_rewriter.py), [`rag/reranker.py`](rag/reranker.py)):
 
 - **Query rewriting** — an LLM call rewrites the user's raw question into a
@@ -163,19 +164,19 @@ visualizes it alongside the offline evaluation results.
 
 ## Tech stack
 
-| Purpose | Tool | Covered in course? |
-|---|---|---|
-| Crawling | `requests`, `BeautifulSoup`, `lxml` | — |
-| Keyword search | **SQLite FTS5** | No — see below |
-| Vector search | **sqlite-vec** | No — see below |
-| Embeddings | OpenAI `text-embedding-3-small` | Yes |
-| Generation & judging | OpenAI `gpt-4.1-mini` | Yes |
-| Structured LLM output | Pydantic + OpenAI `responses.parse` | No — see below |
-| Interface | Streamlit | Yes (listed as an accepted option) |
-| Dashboard charts | Plotly + pandas | — |
-| Dependency management | [uv](https://docs.astral.sh/uv/) | — |
+| Purpose | Tool |
+|---|---|
+| Crawling | `requests`, `BeautifulSoup`, `lxml` |
+| Keyword search | **SQLite FTS5** |
+| Vector search | **sqlite-vec** |
+| Embeddings | OpenAI `text-embedding-3-small` |
+| Generation & judging | OpenAI `gpt-4.1-mini` |
+| Structured LLM output | Pydantic + OpenAI `responses.parse` |
+| Interface | Streamlit |
+| Dashboard charts | Plotly + pandas |
+| Dependency management | [uv](https://docs.astral.sh/uv/) |
 
-**Why SQLite FTS5 + sqlite-vec. FTS5 is SQLite's built-in
+**Why SQLite FTS5 + sqlite-vec?** FTS5 is SQLite's built-in
 full-text search extension: it stores an inverted index on disk, ranks results
 with the industry-standard BM25 algorithm, and needs zero extra services —
 just the Python standard library's `sqlite3` module.
@@ -185,6 +186,14 @@ special virtual table and answers "k nearest neighbours" queries with plain
 SQL. Together, both indexes live in a single `.db` file with no separate
 database server to run, deploy, or containerize — which keeps the whole
 project reproducible with nothing more than a Python environment.
+
+**Why `responses.parse` with Pydantic instead of manually parsing JSON?**
+Early versions of this project asked the model to return JSON as free text
+and parsed it by stripping markdown fences — fragile, and it broke whenever
+the model's formatting drifted. OpenAI's `responses.parse` API accepts a
+Pydantic model as the expected output shape and guarantees the response
+matches it, used throughout the evaluation code (ground-truth question
+generation, LLM-as-judge scoring) and the re-ranker.
 
 
 ## Project structure
@@ -201,8 +210,8 @@ llm_project/
 │   └── build_vector_index.py  # sqlite-vec + OpenAI embeddings
 ├── rag/                    # retrieve → prompt → generate
 │   ├── retriever.py         # keyword / vector / hybrid (RRF)
-│   ├── query_rewriter.py     # bonus: LLM query rewriting
-│   ├── reranker.py            # bonus: LLM re-ranking
+│   ├── query_rewriter.py     # LLM query rewriting
+│   ├── reranker.py            # LLM re-ranking
 │   ├── prompts.py               # strict / flexible prompt variants
 │   ├── llm.py                     # chat completion + structured output wrapper
 │   └── pipeline.py                 # answer(question) -> {answer, sources}
@@ -354,7 +363,7 @@ faithfulness — it had zero outright unfaithful answers in the sample, versus
 Both evaluation scripts track and report actual OpenAI API cost (ground truth
 generation: ~$0.15; LLM eval judging: ~$0.08).
 
-### Query rewriting & re-ranking (bonus)
+### Query rewriting & re-ranking
 
 Four retrieval configurations were compared on a random sample of 100
 questions ([`eval/query_enhancement_eval.py`](eval/query_enhancement_eval.py)):
@@ -397,13 +406,13 @@ Charts 5-6 are populated immediately from the evaluation runs above; charts
 
 ## Known limitations / what's left
 
-- **No cloud deployment** (bonus item).
 - **Ground-truth questions are synthetic** (LLM-generated from the source
   chunks), not real student queries — see the retrieval evaluation note above.
-- The `data/index/` SQLite DB is gitignored (contains OpenAI-generated
-  embeddings) — running the pipeline from scratch requires an OpenAI API key
-  and will make paid API calls (embeddings are cheap; the full evaluation
-  suite costs well under $1 in total, see [Evaluation](#evaluation)).
+- **Re-running ingestion from scratch requires an OpenAI API key** and makes
+  paid API calls (embeddings are cheap; the full evaluation suite costs well
+  under $1 in total, see [Evaluation](#evaluation)). The pre-built
+  `data/index/` SQLite DB is committed to the repo, so this is only needed if
+  you want to rebuild the knowledge base yourself.
 - **Two coverage gaps found by testing, and fixed.** Asking "I need to book a
   study room in the general library" originally retrieved only the Student
   Hubs and Libraries pages — the closest content available — and answered
